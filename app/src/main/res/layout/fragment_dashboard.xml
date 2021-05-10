@@ -7,16 +7,135 @@
     tools:context=".ui.dashboard.DashboardFragment">
 
     <TextView
-        android:id="@+id/text_dashboard"
-        android:layout_width="match_parent"
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="19dp"
+        android:text="@string/bank"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textHello" />
+
+    <TextView
+        android:id="@+id/textBalance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textSize="36sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView7"
+        tools:text="x" />
+
+    <TextView
+        android:id="@+id/textCash"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="104dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textHello"
+        tools:text="x" />
+
+    <TextView
+        android:id="@+id/textHello"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/hello"
+        android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!--    <shape-->
+    <!--        android:layout_width="325dp"-->
+    <!--        android:layout_height="148dp"-->
+    <!--        android:shape="rectangle"-->
+    <!--        tools:layout_editor_absoluteX="45dp"-->
+    <!--        tools:layout_editor_absoluteY="200dp">-->
+
+    <!--        <solid android:color="#BCBCBC" />-->
+
+    <!--        <stroke-->
+    <!--            android:width="1dip"-->
+    <!--            android:color="#4fa5d5" />-->
+
+    <!--        <corners android:radius="25dp"/>-->
+    <!--    </shape>-->
+
+    <TextView
+        android:id="@+id/textView6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="23dp"
+        android:text="@string/income"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.49"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView11" />
+
+    <Button
+        android:id="@+id/buttonPM"
+        android:layout_width="158dp"
+        android:layout_height="168dp"
+        android:layout_marginTop="16dp"
+        android:enabled="false"
+        android:text="@string/pocket_money"
+        app:background="@drawable/box"
+        app:cornerRadius="25dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/buttonWork"
+        app:layout_constraintTop_toBottomOf="@+id/textView6" />
+
+    <Button
+        android:id="@+id/buttonWork"
+        android:layout_width="158dp"
+        android:layout_height="168dp"
+        android:layout_marginTop="16dp"
+        android:clickable="false"
+        android:enabled="false"
+        android:text="@string/work"
+        app:background="@drawable/box"
+        app:cornerRadius="25dp"
+        app:layout_constraintEnd_toStartOf="@+id/buttonPM"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView6" />
+
+    <Button
+        android:id="@+id/buttonDeposit"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/deposit"
+        app:cornerRadius="25dp"
+        app:layout_constraintEnd_toStartOf="@+id/buttonWithdraw"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textCash" />
+
+    <Button
+        android:id="@+id/buttonWithdraw"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="@string/withdraw"
+        app:cornerRadius="25dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/buttonDeposit"
+        app:layout_constraintTop_toTopOf="@+id/buttonDeposit" />
+
+    <TextView
+        android:id="@+id/textView11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDeposit"
+        tools:text="x" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
