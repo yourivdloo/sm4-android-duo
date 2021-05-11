@@ -1,18 +1,20 @@
 package com.example.cashgrab.ui.register
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import com.example.cashgrab.ui.MainActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.example.cashgrab.databinding.ActivityRegisterBinding
 import com.example.cashgrab.models.User
+import com.example.cashgrab.ui.MainActivity
 import com.example.cashgrab.ui.login.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 class RegisterActivity : AppCompatActivity() {
@@ -65,15 +67,20 @@ class RegisterActivity : AppCompatActivity() {
                                     val currentUser = auth.currentUser
                                     if (currentUser != null) {
                                         val uid = currentUser.uid
+
+                                        val cal = Calendar.getInstance()
+                                        cal.add(Calendar.DAY_OF_YEAR, -1)
+                                        var date = cal.time
+
                                         val user = User(
                                             uid,
                                             "user",
-                                            Date(),
-                                            Date(),
-                                            Date(),
-                                            Date(),
+                                            date,
+                                            date,
+                                            date,
+                                            date,
                                             15,
-                                            Date(),
+                                            date,
                                             false,
                                             false,
                                             0,

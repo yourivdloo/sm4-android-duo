@@ -28,6 +28,13 @@
     <string name="all">ALL</string>
     <string name="how_much_money_would_you_like_to_deposit">How much money would you like to deposit?</string>
     <string name="deposit">Deposit</string>
-    <string name="back">Back</string>
     <string name="how_much_money_would_you_like_to_withdraw">How much money would you like to withdraw?</string>
+    <string name="gift">Gift</string>
+    <string name="steal">Steal</string>
+    <string name="interactions">Interactions</string>
+    <string name="events">Events</string>
+    <string name="choose_who_you_want_to_steal_from">Choose who you want to steal from</string>
+    <string name="search_by_username">Search by username</string>
+    <string name="back">Back</string>
+    <string name="search">Search</string>
 </resources>
