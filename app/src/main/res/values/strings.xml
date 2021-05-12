@@ -37,4 +37,21 @@
     <string name="search_by_username">Search by username</string>
     <string name="back">Back</string>
     <string name="search">Search</string>
+    <string name="choose_who_you_want_to_gift">Choose who you want to gift</string>
+    <string name="amount">Amount</string>
+    <string name="roulette">Roulette</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="x3">x3</string>
+    <string name="x2">x2</string>
+    <string name="black">Black</string>
+    <string name="odd">Odd</string>
+    <string name="even">Even</string>
+    <string name="red">Red</string>
+    <string name="_13_24">13-24</string>
+    <string name="_25_36">25-36</string>
+    <string name="_1_12">1-12</string>
+    <string name="bet">Bet</string>
+    <string name="number">Number</string>
+    <string name="x36">x36</string>
+    <string name="stakes">Stakes</string>
 </resources>

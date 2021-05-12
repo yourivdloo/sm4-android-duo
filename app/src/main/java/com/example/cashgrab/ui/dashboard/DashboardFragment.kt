@@ -12,12 +12,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.cashgrab.R
 import com.example.cashgrab.databinding.FragmentDashboardBinding
+import com.google.android.material.internal.NavigationMenuItemView
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.lang.Float
 import java.lang.Long.parseLong
 import java.util.*
 import kotlin.math.truncate
@@ -60,44 +60,50 @@ class DashboardFragment : Fragment() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     var result = task.result?.documents?.get(0)
-                    id = result?.id!!
-                    Log.d("RESULT", result?.data?.get("user_name").toString())
+                    if (result != null) {
+                        id = result.id
+                        Log.d("RESULT", result.data?.get("user_name").toString())
 
-                    binding.textHello.text = "Hello, " + result?.data?.get("user_name").toString()
-                    binding.textBalance.text = "€" + result?.data?.get("balance").toString() + ",-"
-                    binding.textCash.text = "Cash: €" + result?.data?.get("cash").toString() + ",-"
+                        binding.textHello.text =
+                            "Hello, " + result.data?.get("user_name").toString()
+                        binding.textBalance.text =
+                            "€" + result.data?.get("balance").toString() + ",-"
+                        binding.textCash.text =
+                            "Cash: €" + result.data?.get("cash").toString() + ",-"
 
-                    val lastWorked: Timestamp = result?.data?.get("last_worked") as Timestamp
-                    val currentTime = Date()
-                    val workCooldownOver = lastWorked.toDate().time + 3600000
+                        val lastWorked: Timestamp = result.data?.get("last_worked") as Timestamp
+                        val currentTime = Date()
+                        val workCooldownOver = lastWorked.toDate().time + 3600000
 
-                    if (currentTime.time >= workCooldownOver) {
-                        binding.buttonWork.text = "Work\nReady"
-                        binding.buttonWork.isEnabled = true
+                        if (currentTime.time >= workCooldownOver) {
+                            binding.buttonWork.text = "Work\nReady"
+                            binding.buttonWork.isEnabled = true
+                        } else {
+                            val timeToGo = workCooldownOver - currentTime.time
+                            val hours = truncate((timeToGo / 1000 / 60 / 60).toDouble()).toInt()
+                            val minutes =
+                                truncate((timeToGo / 1000 / 60 - (hours * 60)).toDouble()).toInt()
+                            binding.buttonWork.text =
+                                "Work\n" + hours.toString() + "h" + minutes.toString() + "m"
+                        }
+
+                        val lastPM: Timestamp = result?.data?.get("last_pm") as Timestamp
+                        val pmCooldownOver = lastPM.toDate().time + 21600000
+
+                        if (currentTime.time >= pmCooldownOver) {
+                            binding.buttonPM.text = "Pocket money\nReady"
+                            binding.buttonPM.isEnabled = true
+                        } else {
+                            val timeToGo = pmCooldownOver - currentTime.time
+                            val hours = truncate((timeToGo / 1000 / 60 / 60).toDouble()).toInt()
+                            val minutes =
+                                truncate((timeToGo / 1000 / 60 - (hours * 60)).toDouble()).toInt()
+                            binding.buttonPM.text =
+                                "Pocket money\n" + hours.toString() + "h" + minutes.toString() + "m"
+                        }
                     } else {
-                        val timeToGo = workCooldownOver - currentTime.time
-                        val hours = truncate((timeToGo / 1000 / 60 / 60).toDouble()).toInt()
-                        val minutes = truncate((timeToGo / 1000 / 60 - (hours * 60)).toDouble()).toInt()
-                        binding.buttonWork.text =
-                            "Work\n" + hours.toString() + "h" + minutes.toString() + "m"
+                        failureToast()
                     }
-
-                    val lastPM: Timestamp = result?.data?.get("last_pm") as Timestamp
-                    val pmCooldownOver = lastPM.toDate().time + 21600000
-
-                    if (currentTime.time >= pmCooldownOver) {
-                        binding.buttonPM.text = "Pocket money\nReady"
-                        binding.buttonPM.isEnabled = true
-                    } else {
-                        val timeToGo = pmCooldownOver - currentTime.time
-                        val hours = truncate((timeToGo / 1000 / 60 / 60).toDouble()).toInt()
-                        val minutes =
-                            truncate((timeToGo / 1000 / 60 - (hours * 60)).toDouble()).toInt()
-                        binding.buttonPM.text =
-                            "Pocket money\n" + hours.toString() + "h" + minutes.toString() + "m"
-                    }
-                } else {
-                    failureToast()
                 }
             }
 
@@ -228,7 +234,6 @@ class DashboardFragment : Fragment() {
         }
 
         binding.buttonWork.setOnClickListener {
-            var cash: Long = 0
             var earned: Long = ((0..50).random() * 1000).toLong()
 
             Toast.makeText(
@@ -239,7 +244,7 @@ class DashboardFragment : Fragment() {
             val userRef = db.collection("users").document(id)
             userRef.get()
                 .addOnSuccessListener { document ->
-                    cash = document.data?.get("cash") as Long
+                    var cash = document.data?.get("cash") as Long
 
                     userRef
                         .update("last_worked", Timestamp.now(), "cash", cash + earned)
@@ -255,7 +260,6 @@ class DashboardFragment : Fragment() {
         }
 
         binding.buttonPM.setOnClickListener {
-            var cash: Long = 0
             var earned: Long = ((0..100).random() * 1000).toLong()
 
             Toast.makeText(
@@ -266,7 +270,7 @@ class DashboardFragment : Fragment() {
             val userRef = db.collection("users").document(id)
             userRef.get()
                 .addOnSuccessListener { document ->
-                    cash = document.data?.get("cash") as Long
+                    var cash = document.data?.get("cash") as Long
 
 
                     userRef
