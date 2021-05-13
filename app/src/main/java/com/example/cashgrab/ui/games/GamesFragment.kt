@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +17,7 @@ import com.example.cashgrab.R
 import com.example.cashgrab.databinding.FragmentGamesBinding
 import com.example.cashgrab.models.Roulette
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.gson.responseObject
 import com.github.kittinunf.fuel.httpGet
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -127,19 +129,91 @@ class GamesFragment : Fragment() {
             }
 
             buttonRed.setOnClickListener {
-                "http://roulette.rip/api/play?bet=black&wager=100".httpGet().responseObject(Roulette.Deserializer())
-                    { request, response, result ->
-                        val (data, error) = result
-                        print(data)
-                    }
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    var roulette = bet("red", textStakes.text.toString())
 
-//                    Fuel.get("http://roulette.rip/api/play?bet=black&wager=100")
-//                    .response { request, response, result ->
-//                        val (bytes, error) = result
-//                        if (bytes != null) {
-//                            println(String(bytes))
-//                        }
-//                    }
+                    //get success & payout properties and go from there
+                } else {
+                    noBetToast()
+                }
+            }
+
+            buttonBlack.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val roulette = bet("black", textStakes.text.toString())
+
+                    //get success & payout properties and go from there
+                } else {
+                    noBetToast()
+                }
+            }
+
+            buttonEven.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val roulette = bet("even", textStakes.text.toString())
+
+                    //get success & payout properties and go from there
+                } else {
+                    noBetToast()
+                }
+            }
+
+            buttonOdd.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val roulette = bet("odd", textStakes.text.toString())
+
+                    //get success & payout properties and go from there
+                } else {
+                    noBetToast()
+                }
+            }
+
+            buttonCustomBet.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    if(textCustomBet.text.toString().isNotEmpty()) {
+                        val roulette = bet(textCustomBet.text.toString(), textStakes.text.toString())
+
+                        //get success & payout properties and go from there
+                    } else {
+                        Toast.makeText(
+                            this.context,
+                            "You have not provided an valid bet. Please check the bet field.",
+                            Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                } else {
+                    noBetToast()
+                }
+            }
+
+            button1to12.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val roulette = bet("0", textStakes.text.toString())
+
+                    //manually check if bet is correct
+                } else {
+                    noBetToast()
+                }
+            }
+
+            button13to24.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val roulette = bet("0", textStakes.text.toString())
+
+                    //manually check if bet is correct
+                } else {
+                    noBetToast()
+                }
+            }
+
+            button25to36.setOnClickListener {
+                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val roulette = bet("0", textStakes.text.toString())
+
+                    //manually check if bet is correct
+                } else {
+                    noBetToast()
+                }
             }
 
             buttonAll.setOnClickListener {
@@ -148,5 +222,25 @@ class GamesFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    private fun bet(bet : String, amount : String) : Roulette? {
+        var toReturn : Roulette? = null
+        val url = "http://roulette.rip/api/play?bet=" + bet + "&wager=" + amount
+        url.httpGet()
+            .responseObject(Roulette.Deserializer())
+            { _, _, result ->
+                val (data, _) = result
+                toReturn = data
+            }
+        return toReturn
+    }
+
+    private fun noBetToast(){
+        Toast.makeText(
+            this.context,
+            "You have not provided an amount to bet. Please fill in the field.",
+            Toast.LENGTH_SHORT
+        ).show();
     }
 }
