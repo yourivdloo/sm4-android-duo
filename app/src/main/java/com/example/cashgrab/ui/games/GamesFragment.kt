@@ -35,19 +35,19 @@ class GamesFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         gameViewModel =
-                ViewModelProvider(this).get(GamesViewModel::class.java)
+            ViewModelProvider(this).get(GamesViewModel::class.java)
 
         binding = FragmentGamesBinding.inflate(layoutInflater)
         auth = Firebase.auth
         val currentUser = auth.currentUser
 
-        var gamesLeft : Long = 0
-        var cash : Long = 0
+        var gamesLeft: Long = 0
+        var cash: Long = 0
         var userRef: DocumentReference? = null
 
         val db = Firebase.firestore
@@ -67,21 +67,26 @@ class GamesFragment : Fragment() {
                         val newGames = firstGame.toDate().time + 1800000
                         val timeUntilReset = currentTime - newGames
 
-                        if(gamesLeft <= 0 && timeUntilReset < 0){
+                        if (gamesLeft <= 0 && timeUntilReset < 0) {
                             gamesLeft = 5
                             binding.textGamesLeft.text = "You have " + gamesLeft + " games left!"
                             binding.textCooldown.text = "Reset in 30m after next game"
                             binding.buttonRoulette.isEnabled = true
                             userRef!!.update("games_left", gamesLeft)
                         } else {
-                            val minUntilReset = truncate((timeUntilReset / 1000 / 60).toDouble()).toInt()
+                            val minUntilReset =
+                                truncate((timeUntilReset / 1000 / 60).toDouble()).toInt()
                             binding.textGamesLeft.text = "You have " + gamesLeft + " games left!"
                             binding.textCooldown.text = "Reset in " + minUntilReset + "m"
                         }
 
-                        if(gamesLeft.toInt() == 5){ binding.textCooldown.text = "Reset in 30m after next game" }
+                        if (gamesLeft.toInt() == 5) {
+                            binding.textCooldown.text = "Reset in 30m after next game"
+                        }
                         binding.textGamesCash.text = "Cash: €" + cash + ",-"
-                        if(gamesLeft > 0){ binding.buttonRoulette.isEnabled = true }
+                        if (gamesLeft > 0) {
+                            binding.buttonRoulette.isEnabled = true
+                        }
                     }
 
                 }
@@ -119,7 +124,7 @@ class GamesFragment : Fragment() {
                 }
             }
 
-            textCustomBet.addTextChangedListener {text ->
+            textCustomBet.addTextChangedListener { text ->
                 if (text != null && text.toString().isNotEmpty()) {
                     val input: Long = parseLong(text.toString())
                     if (input > 36) {
@@ -129,17 +134,40 @@ class GamesFragment : Fragment() {
             }
 
             buttonRed.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    var roulette = bet("red", textStakes.text.toString())
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    val url = "http://roulette.rip/api/play?bet=red&wager=" + textStakes.text.toString()
+                    var roulette: Roulette? = null
+                    url.httpGet()
+                        .responseObject(Roulette.Deserializer())
+                        { _, _, result ->
+                            val (data, _) = result
+                            Log.d("hapatee", data.toString())
+                            roulette = data
+                            var payout = roulette?.bet?.payout
+                            var outcome: String = "You have lost your bet."
+                            if (roulette?.bet?.win == true) {
+                                outcome = "You have won €" + payout.toString() + ",-"
+                            }
+                            var result =
+                                "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+                            cash = (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                            gamesLeft = gamesLeft--
+                            updateDB(cash, gamesLeft, userRef!!)
+                            resultToast(result)
+                            myDialog.dismiss()
+                        }
+//                    if (roulette != null) {
 
-                    //get success & payout properties and go from there
+//                    } else {
+//                        Log.d("pim", "kaduuk")
+//                    }
                 } else {
                     noBetToast()
                 }
             }
 
             buttonBlack.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
                     val roulette = bet("black", textStakes.text.toString())
 
                     //get success & payout properties and go from there
@@ -149,7 +177,7 @@ class GamesFragment : Fragment() {
             }
 
             buttonEven.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
                     val roulette = bet("even", textStakes.text.toString())
 
                     //get success & payout properties and go from there
@@ -159,7 +187,7 @@ class GamesFragment : Fragment() {
             }
 
             buttonOdd.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
                     val roulette = bet("odd", textStakes.text.toString())
 
                     //get success & payout properties and go from there
@@ -169,9 +197,10 @@ class GamesFragment : Fragment() {
             }
 
             buttonCustomBet.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    if(textCustomBet.text.toString().isNotEmpty()) {
-                        val roulette = bet(textCustomBet.text.toString(), textStakes.text.toString())
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                    if (textCustomBet.text.toString().isNotEmpty()) {
+                        val roulette =
+                            bet(textCustomBet.text.toString(), textStakes.text.toString())
 
                         //get success & payout properties and go from there
                     } else {
@@ -187,7 +216,7 @@ class GamesFragment : Fragment() {
             }
 
             button1to12.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
                     val roulette = bet("0", textStakes.text.toString())
 
                     //manually check if bet is correct
@@ -197,7 +226,7 @@ class GamesFragment : Fragment() {
             }
 
             button13to24.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
                     val roulette = bet("0", textStakes.text.toString())
 
                     //manually check if bet is correct
@@ -207,7 +236,7 @@ class GamesFragment : Fragment() {
             }
 
             button25to36.setOnClickListener {
-                if(textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
+                if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
                     val roulette = bet("0", textStakes.text.toString())
 
                     //manually check if bet is correct
@@ -224,22 +253,38 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
-    private fun bet(bet : String, amount : String) : Roulette? {
-        var toReturn : Roulette? = null
-        val url = "http://roulette.rip/api/play?bet=" + bet + "&wager=" + amount
-        url.httpGet()
-            .responseObject(Roulette.Deserializer())
-            { _, _, result ->
-                val (data, _) = result
-                toReturn = data
+    private fun updateDB(cash: Long, gamesLeft: Long, userRef: DocumentReference) {
+        userRef!!
+            .update("cash", cash, "games_left", gamesLeft)
+            .addOnSuccessListener {
+                Log.d("update", "updated user")
             }
-        return toReturn
     }
 
-    private fun noBetToast(){
+    private fun bet(bet: String, amount: String): Roulette? {
+//        var toReturn: Roulette? = null
+//        val url = "http://roulette.rip/api/play?bet=" + bet + "&wager=" + amount
+//        url.httpGet()
+//            .responseObject(Roulette.Deserializer())
+//            { _, _, result ->
+//                val (data, _) = result
+//                toReturn = data
+//            }
+        return null
+    }
+
+    private fun noBetToast() {
         Toast.makeText(
             this.context,
             "You have not provided an amount to bet. Please fill in the field.",
+            Toast.LENGTH_SHORT
+        ).show();
+    }
+
+    private fun resultToast(result: String) {
+        Toast.makeText(
+            this.context,
+            result,
             Toast.LENGTH_SHORT
         ).show();
     }
