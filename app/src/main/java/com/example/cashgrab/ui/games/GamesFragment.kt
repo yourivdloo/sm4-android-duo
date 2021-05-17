@@ -1,6 +1,7 @@
 package com.example.cashgrab.ui.games
 
 import android.app.Dialog
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,13 +13,13 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
 import com.example.cashgrab.R
 import com.example.cashgrab.databinding.FragmentGamesBinding
 import com.example.cashgrab.models.Roulette
+import com.example.cashgrab.ui.MainActivity
 import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.gson.responseObject
-import com.github.kittinunf.fuel.httpGet
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -28,6 +29,7 @@ import com.google.firebase.ktx.Firebase
 import java.lang.Long.parseLong
 import java.util.*
 import kotlin.math.truncate
+
 
 class GamesFragment : Fragment() {
     private lateinit var gameViewModel: GamesViewModel
@@ -46,6 +48,7 @@ class GamesFragment : Fragment() {
         auth = Firebase.auth
         val currentUser = auth.currentUser
 
+        var firstGame: Timestamp = Timestamp.now()
         var gamesLeft: Long = 0
         var cash: Long = 0
         var userRef: DocumentReference? = null
@@ -61,13 +64,17 @@ class GamesFragment : Fragment() {
                         userRef = db.collection("users").document(id)
                         Log.d("RESULT", result.data?.get("user_name").toString())
 
-                        val firstGame: Timestamp = result.data?.get("first_game") as Timestamp
+                        firstGame = result.data?.get("first_game") as Timestamp
                         gamesLeft = result.data?.get("games_left") as Long
                         val currentTime = Date().time
                         val newGames = firstGame.toDate().time + 1800000
                         val timeUntilReset = currentTime - newGames
 
-                        if (gamesLeft <= 0 && timeUntilReset < 0) {
+                        println(currentTime.toString())
+                        println(newGames.toString())
+                        println(timeUntilReset.toString())
+
+                        if (timeUntilReset > 0) {
                             gamesLeft = 5
                             binding.textGamesLeft.text = "You have " + gamesLeft + " games left!"
                             binding.textCooldown.text = "Reset in 30m after next game"
@@ -75,7 +82,7 @@ class GamesFragment : Fragment() {
                             userRef!!.update("games_left", gamesLeft)
                         } else {
                             val minUntilReset =
-                                truncate((timeUntilReset / 1000 / 60).toDouble()).toInt()
+                                Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
                             binding.textGamesLeft.text = "You have " + gamesLeft + " games left!"
                             binding.textCooldown.text = "Reset in " + minUntilReset + "m"
                         }
@@ -135,32 +142,65 @@ class GamesFragment : Fragment() {
 
             buttonRed.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val url = "http://roulette.rip/api/play?bet=red&wager=" + textStakes.text.toString()
-                    var roulette: Roulette? = null
-                    url.httpGet()
-                        .responseObject(Roulette.Deserializer())
-                        { _, _, result ->
-                            val (data, _) = result
-                            Log.d("hapatee", data.toString())
-                            roulette = data
-                            var payout = roulette?.bet?.payout
-                            var outcome: String = "You have lost your bet."
-                            if (roulette?.bet?.win == true) {
-                                outcome = "You have won €" + payout.toString() + ",-"
-                            }
-                            var result =
-                                "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
-                            cash = (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
-                            gamesLeft = gamesLeft--
-                            updateDB(cash, gamesLeft, userRef!!)
-                            resultToast(result)
-                            myDialog.dismiss()
-                        }
-//                    if (roulette != null) {
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=red&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-//                    } else {
-//                        Log.d("pim", "kaduuk")
-//                    }
+                            if (roulette != null) {
+                                var payout = roulette?.bet?.payout
+                                var outcome = "You have lost your bet."
+                                if (roulette?.bet?.win == true) {
+                                    outcome = "You have won €" + payout.toInt().toString() + ",-"
+                                }
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -168,9 +208,65 @@ class GamesFragment : Fragment() {
 
             buttonBlack.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val roulette = bet("black", textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=black&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-                    //get success & payout properties and go from there
+                            if (roulette != null) {
+                                var payout = roulette?.bet?.payout
+                                var outcome = "You have lost your bet."
+                                if (roulette?.bet?.win == true) {
+                                    outcome = "You have won €" + payout.toInt().toString() + ",-"
+                                }
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -178,9 +274,65 @@ class GamesFragment : Fragment() {
 
             buttonEven.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val roulette = bet("even", textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=even&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-                    //get success & payout properties and go from there
+                            if (roulette != null) {
+                                var payout = roulette?.bet?.payout
+                                var outcome = "You have lost your bet."
+                                if (roulette?.bet?.win == true) {
+                                    outcome = "You have won €" + payout.toInt().toString() + ",-"
+                                }
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -188,9 +340,65 @@ class GamesFragment : Fragment() {
 
             buttonOdd.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val roulette = bet("odd", textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=odd&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-                    //get success & payout properties and go from there
+                            if (roulette != null) {
+                                var payout = roulette?.bet?.payout
+                                var outcome = "You have lost your bet."
+                                if (roulette?.bet?.win == true) {
+                                    outcome = "You have won €" + payout.toInt().toString() + ",-"
+                                }
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -198,17 +406,73 @@ class GamesFragment : Fragment() {
 
             buttonCustomBet.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    if (textCustomBet.text.toString().isNotEmpty()) {
-                        val roulette =
-                            bet(textCustomBet.text.toString(), textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        if (textCustomBet.text.toString().isNotEmpty()) {
+                            val url =
+                                "http://roulette.rip/api/play?bet=" + textCustomBet.text.toString() + "&wager=" + textStakes.text.toString()
+                            Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                                val (roulette, _) = result
 
-                        //get success & payout properties and go from there
+                                if (roulette != null) {
+                                    var payout = roulette?.bet?.payout
+                                    var outcome = "You have lost your bet."
+                                    if (roulette?.bet?.win == true) {
+                                        outcome =
+                                            "You have won €" + payout.toInt().toString() + ",-"
+                                    }
+                                    var finalResult =
+                                        "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                    if (gamesLeft.toInt() == 5) {
+                                        firstGame = Timestamp.now()
+                                    }
+
+                                    cash =
+                                        (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                    gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                    userRef!!
+                                        .update(
+                                            "cash",
+                                            cash,
+                                            "games_left",
+                                            gamesLeft,
+                                            "first_game",
+                                            firstGame
+                                        )
+                                        .addOnSuccessListener {
+                                            Log.d("update", "updated user")
+
+                                            binding.textGamesCash.text =
+                                                "Cash: €" + cash.toString() + ",-"
+                                            binding.textGamesLeft.text =
+                                                "You have " + gamesLeft.toString() + " games left!"
+                                            val currentTime = Date().time
+                                            val newGames = firstGame.toDate().time + 1800000
+                                            val timeUntilReset = currentTime - newGames
+                                            val minUntilReset =
+                                                Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                            binding.textCooldown.text =
+                                                "Reset in " + minUntilReset + "m"
+
+                                            if (gamesLeft <= 0) {
+                                                binding.buttonRoulette.isEnabled = false
+                                            }
+                                            resultToast(finalResult)
+                                            myDialog.dismiss()
+                                        }
+                                }
+                            }
+                        } else {
+                            Toast.makeText(
+                                this.context,
+                                "You have not provided an valid bet. Please check the bet field.",
+                                Toast.LENGTH_SHORT
+                            ).show();
+                        }
                     } else {
-                        Toast.makeText(
-                            this.context,
-                            "You have not provided an valid bet. Please check the bet field.",
-                            Toast.LENGTH_SHORT
-                        ).show();
+                        poorToast()
+                        myDialog.dismiss()
                     }
                 } else {
                     noBetToast()
@@ -217,9 +481,68 @@ class GamesFragment : Fragment() {
 
             button1to12.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val roulette = bet("0", textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=red&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-                    //manually check if bet is correct
+                            if (roulette != null) {
+                                var payout = 0
+                                var outcome = "You have lost your bet."
+                                if (roulette?.roll?.number >= 1 && roulette?.roll?.number <= 12) {
+                                    payout = roulette?.bet?.wager!!.toInt() * 3
+                                    println(payout.toString())
+                                    outcome = "You have won €" + payout.toString() + ",-"
+                                }
+
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -227,9 +550,66 @@ class GamesFragment : Fragment() {
 
             button13to24.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val roulette = bet("0", textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=red&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-                    //manually check if bet is correct
+                            if (roulette != null) {
+                                var payout = 0
+                                var outcome = "You have lost your bet."
+                                if (roulette?.roll?.number >= 13 && roulette?.roll?.number <= 26) {
+                                    payout = roulette?.bet?.wager!!.toInt() * 3
+                                    outcome = "You have won €" + payout.toString() + ",-"
+                                }
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -237,9 +617,67 @@ class GamesFragment : Fragment() {
 
             button25to36.setOnClickListener {
                 if (textStakes.text.toString().isNotEmpty() && textStakes.text.toString() != "0") {
-                    val roulette = bet("0", textStakes.text.toString())
+                    if (!textStakes.text.toString().contains("-")) {
+                        val url =
+                            "http://roulette.rip/api/play?bet=red&wager=" + textStakes.text.toString()
+                        Fuel.get(url).responseObject(Roulette.Deserializer()) { _, _, result ->
+                            val (roulette, _) = result
 
-                    //manually check if bet is correct
+                            if (roulette != null) {
+                                var payout = 0
+                                var outcome = "You have lost your bet."
+                                if (roulette?.roll?.number >= 25 && roulette?.roll?.number <= 36) {
+                                    payout = roulette?.bet?.wager!!.toInt() * 3
+                                    outcome = "You have won €" + payout.toString() + ",-"
+                                }
+
+                                var finalResult =
+                                    "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
+
+                                if (gamesLeft.toInt() == 5) {
+                                    firstGame = Timestamp.now()
+                                }
+
+                                cash =
+                                    (cash.toInt() - roulette?.bet?.wager!! + payout!!.toInt()).toLong()
+                                gamesLeft = (gamesLeft.toInt() - 1).toLong()
+
+                                userRef!!
+                                    .update(
+                                        "cash",
+                                        cash,
+                                        "games_left",
+                                        gamesLeft,
+                                        "first_game",
+                                        firstGame
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("update", "updated user")
+
+                                        binding.textGamesCash.text =
+                                            "Cash: €" + cash.toString() + ",-"
+                                        binding.textGamesLeft.text =
+                                            "You have " + gamesLeft.toString() + " games left!"
+                                        val currentTime = Date().time
+                                        val newGames = firstGame.toDate().time + 1800000
+                                        val timeUntilReset = currentTime - newGames
+                                        val minUntilReset =
+                                            Math.abs(truncate((timeUntilReset / 1000 / 60).toDouble()).toInt())
+                                        binding.textCooldown.text =
+                                            "Reset in " + minUntilReset + "m"
+
+                                        if (gamesLeft <= 0) {
+                                            binding.buttonRoulette.isEnabled = false
+                                        }
+                                        resultToast(finalResult)
+                                        myDialog.dismiss()
+                                    }
+                            }
+                        }
+                    } else {
+                        poorToast()
+                        myDialog.dismiss()
+                    }
                 } else {
                     noBetToast()
                 }
@@ -253,30 +691,53 @@ class GamesFragment : Fragment() {
         return binding.root
     }
 
-    private fun updateDB(cash: Long, gamesLeft: Long, userRef: DocumentReference) {
-        userRef!!
-            .update("cash", cash, "games_left", gamesLeft)
-            .addOnSuccessListener {
-                Log.d("update", "updated user")
-            }
-    }
+//    private fun updateDB(cash: Long, gamesLeft: Long) {
+////        var id = ""
+////        val db = Firebase.firestore
+////
+////        auth = Firebase.auth
+////        val currentUser = auth.currentUser
+////        db.collection("users").whereEqualTo("user_id", currentUser.uid).get()
+////            .addOnCompleteListener { task ->
+////                if (task.isSuccessful) {
+////                    var user = task.result?.documents?.get(0)
+////                    id = user!!.id
+////                }
+////
+////                var userRef = db.collection("users").document(id)
+////
+////                userRef!!
+////                    .update("cash", cash, "games_left", gamesLeft)
+////                    .addOnSuccessListener {
+////                        Log.d("update", "updated user")
+////                    }
+////            }
+//    }
 
-    private fun bet(bet: String, amount: String): Roulette? {
-//        var toReturn: Roulette? = null
-//        val url = "http://roulette.rip/api/play?bet=" + bet + "&wager=" + amount
-//        url.httpGet()
-//            .responseObject(Roulette.Deserializer())
-//            { _, _, result ->
-//                val (data, _) = result
-//                toReturn = data
-//            }
-        return null
-    }
+//    private fun bet(bet: String, amount: String): Roulette? {
+////        var toReturn: Roulette? = null
+////        val url = "http://roulette.rip/api/play?bet=" + bet + "&wager=" + amount
+////        url.httpGet()
+////            .responseObject(Roulette.Deserializer())
+////            { _, _, result ->
+////                val (data, _) = result
+////                toReturn = data
+////            }
+//        return null
+//    }
 
     private fun noBetToast() {
         Toast.makeText(
             this.context,
             "You have not provided an amount to bet. Please fill in the field.",
+            Toast.LENGTH_SHORT
+        ).show();
+    }
+
+    private fun poorToast() {
+        Toast.makeText(
+            this.context,
+            "You cannot play games with negative cash. Please withdraw some money from your bank.",
             Toast.LENGTH_SHORT
         ).show();
     }
