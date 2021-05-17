@@ -132,6 +132,8 @@ class DashboardFragment : Fragment() {
                     val input: Long = parseLong(text.toString())
                     if (input > cash) {
                         textAmount.setText(cash.toString())
+                    } else {
+                        buttonConfirmDeposit.isEnabled = true
                     }
                 }
             }
@@ -194,6 +196,8 @@ class DashboardFragment : Fragment() {
                     val input: Long = parseLong(text.toString())
                     if (input > balance) {
                         textAmount.setText(balance.toString());
+                    } else {
+                        buttonConfirmWithdraw.isEnabled = true
                     }
                 }
             }

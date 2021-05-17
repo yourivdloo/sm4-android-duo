@@ -118,6 +118,9 @@ class GamesFragment : Fragment() {
             val textCustomBet = myDialog.findViewById<EditText>(R.id.textCustomBet)
             val buttonBack = myDialog.findViewById<ImageButton>(R.id.buttonBack5)
 
+            var check1 : Boolean = false
+            var check2 : Boolean = false
+
             buttonBack.setOnClickListener {
                 myDialog.dismiss()
             }
@@ -127,7 +130,27 @@ class GamesFragment : Fragment() {
                     val input: Long = parseLong(text.toString())
                     if (input > cash) {
                         textStakes.setText(cash.toString())
+                    } else {
+                        buttonRed.isEnabled = true
+                        buttonBlack.isEnabled = true
+                        buttonEven.isEnabled = true
+                        buttonOdd.isEnabled = true
+                        button1to12.isEnabled = true
+                        button13to24.isEnabled = true
+                        button25to36.isEnabled = true
+                        check1 = true
+                        if(check1 && check2){ buttonCustomBet.isEnabled = true }
                     }
+                } else {
+                    buttonRed.isEnabled = false
+                    buttonBlack.isEnabled = false
+                    buttonEven.isEnabled = false
+                    buttonOdd.isEnabled = false
+                    button1to12.isEnabled = false
+                    button13to24.isEnabled = false
+                    button25to36.isEnabled = false
+                    check1 = false
+                    if(!check1 || !check2){ buttonCustomBet.isEnabled = false }
                 }
             }
 
@@ -136,7 +159,13 @@ class GamesFragment : Fragment() {
                     val input: Long = parseLong(text.toString())
                     if (input > 36) {
                         textStakes.setText(0)
+                    } else {
+                        check2 = true
+                        if(check1 && check2) { buttonCustomBet.isEnabled = true }
                     }
+                } else {
+                    check2 = false
+                    if(!check1 || !check2){ buttonCustomBet.isEnabled = false }
                 }
             }
 

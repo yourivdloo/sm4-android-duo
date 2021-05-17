@@ -54,4 +54,12 @@
     <string name="number">Number</string>
     <string name="x36">x36</string>
     <string name="stakes">Stakes</string>
+    <string name="apple">Apple</string>
+    <string name="stocks">Stocks</string>
+    <string name="microsoft">Microsoft</string>
+    <string name="tesla">Tesla</string>
+    <string name="shop">Shop</string>
+    <string name="sell">Sell</string>
+    <string name="buy">Buy</string>
+    <string name="max">MAX</string>
 </resources>
