@@ -51,6 +51,7 @@ class GamesFragment : Fragment() {
         var firstGame: Timestamp = Timestamp.now()
         var gamesLeft: Long = 0
         var cash: Long = 0
+        var extraGames: Boolean = false
         var userRef: DocumentReference? = null
 
         val db = Firebase.firestore
@@ -60,6 +61,7 @@ class GamesFragment : Fragment() {
                     var result = task.result?.documents?.get(0)
                     if (result != null) {
                         cash = result.data?.get("cash") as Long
+                        extraGames = result.data?.get("extra_games") as Boolean
                         val id = result.id
                         userRef = db.collection("users").document(id)
                         Log.d("RESULT", result.data?.get("user_name").toString())
@@ -75,7 +77,9 @@ class GamesFragment : Fragment() {
                         println(timeUntilReset.toString())
 
                         if (timeUntilReset > 0) {
-                            gamesLeft = 5
+                            if(extraGames){ gamesLeft = 15 }
+                            else{ gamesLeft = 5 }
+
                             binding.textGamesLeft.text = "You have " + gamesLeft + " games left!"
                             binding.textCooldown.text = "Reset in 30m after next game"
                             binding.buttonRoulette.isEnabled = true
@@ -87,7 +91,7 @@ class GamesFragment : Fragment() {
                             binding.textCooldown.text = "Reset in " + minUntilReset + "m"
                         }
 
-                        if (gamesLeft.toInt() == 5) {
+                        if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                             binding.textCooldown.text = "Reset in 30m after next game"
                         }
                         binding.textGamesCash.text = "Cash: €" + cash + ",-"
@@ -186,7 +190,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 
@@ -252,7 +256,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 
@@ -318,7 +322,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 
@@ -384,7 +388,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 
@@ -452,7 +456,7 @@ class GamesFragment : Fragment() {
                                     var finalResult =
                                         "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                    if (gamesLeft.toInt() == 5) {
+                                    if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                         firstGame = Timestamp.now()
                                     }
 
@@ -528,7 +532,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 
@@ -595,7 +599,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 
@@ -663,7 +667,7 @@ class GamesFragment : Fragment() {
                                 var finalResult =
                                     "The ball has landed on " + roulette?.roll?.color + " " + roulette?.roll?.number + ". " + outcome
 
-                                if (gamesLeft.toInt() == 5) {
+                                if (!extraGames && gamesLeft.toInt() == 5 || extraGames && gamesLeft.toInt() == 15) {
                                     firstGame = Timestamp.now()
                                 }
 

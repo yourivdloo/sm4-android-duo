@@ -275,8 +275,8 @@ class DashboardFragment : Fragment() {
             userRef.get()
                 .addOnSuccessListener { document ->
                     var cash = document.data?.get("cash") as Long
-
-
+                    var doublePM = document.data?.get("double_pm") as Boolean
+                    if(doublePM){ earned = earned * 2 }
                     userRef
                         .update("last_pm", Timestamp.now(), "cash", cash + earned)
                         .addOnSuccessListener {
