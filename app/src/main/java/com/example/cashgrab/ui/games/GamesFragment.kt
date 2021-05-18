@@ -1,6 +1,8 @@
 package com.example.cashgrab.ui.games
 
 import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -107,6 +109,7 @@ class GamesFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.roulette_game);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textStakes = myDialog.findViewById<EditText>(R.id.textStakes)

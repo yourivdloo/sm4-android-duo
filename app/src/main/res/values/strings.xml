@@ -62,4 +62,7 @@
     <string name="sell">Sell</string>
     <string name="buy">Buy</string>
     <string name="max">MAX</string>
+    <string name="cost">Cost:</string>
+    <string name="earnings">Earnings:</string>
+    <string name="shares">Shares:</string>
 </resources>

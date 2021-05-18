@@ -1,6 +1,8 @@
 package com.example.cashgrab.ui.community
 
 import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -45,6 +47,7 @@ class CommunityFragment : Fragment() {
         var id: String = ""
         var userRef: DocumentReference? = null
         var myCash: Long = 0
+        var myBalance: Long = 0
         var myName: String = ""
         var stealAdapter: ArrayAdapter<String>? = null
         var eventAdapter: ArrayAdapter<String>? = null
@@ -55,6 +58,7 @@ class CommunityFragment : Fragment() {
                 if (task.isSuccessful) {
                     var result = task.result?.documents?.get(0)
                     myCash = result?.data?.get("cash") as Long
+                    myBalance = result?.data?.get("balance") as Long
                     myName = result?.data?.get("user_name").toString()
                     id = result?.id!!
                     userRef = db.collection("users").document(id)
@@ -77,7 +81,7 @@ class CommunityFragment : Fragment() {
                     }
 
                     val lastGift: Timestamp = result?.data?.get("last_gift") as Timestamp
-                    val giftCooldownOver = lastGift.toDate().time + 10800000
+                    val giftCooldownOver = lastGift.toDate().time + 3600000
 
                     if (currentTime.time >= giftCooldownOver) {
                         binding.buttonGift.text = "Gift\nReady"
@@ -143,6 +147,7 @@ class CommunityFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.popup_steal);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textSearch = myDialog.findViewById<EditText>(R.id.textSearch)
@@ -197,7 +202,9 @@ class CommunityFragment : Fragment() {
 
                         if (cash > 0) {
                             var story= ""
+                            var myMoney = myCash + myBalance
                             var amount = (-(cash)..cash).random()
+                            if(amount < -(myMoney)) { amount = -(myMoney) }
                             var userId = document.data?.get("user_id").toString()
 
                             if (amount < 0) {
@@ -278,6 +285,7 @@ class CommunityFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.popup_gift);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textSearch = myDialog.findViewById<EditText>(R.id.textFind)
@@ -352,7 +360,7 @@ class CommunityFragment : Fragment() {
                             db.collection("events").add(event)
 
                             binding.buttonGift.isEnabled = false
-                            binding.buttonGift.text = "Gift\n3h0m"
+                            binding.buttonGift.text = "Gift\n1h0m"
                             myDialog.dismiss()
 
                             events.add(0, story + " (just now)")

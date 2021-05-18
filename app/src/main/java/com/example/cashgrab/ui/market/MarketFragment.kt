@@ -2,6 +2,8 @@ package com.example.cashgrab.ui.market
 
 import android.app.Dialog
 import android.content.DialogInterface
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -235,6 +237,7 @@ class MarketFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.apple_stocks);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textStocks = myDialog.findViewById<TextView>(R.id.textAppleStocks)
@@ -401,6 +404,7 @@ class MarketFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.tesla_stocks);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textStocks = myDialog.findViewById<TextView>(R.id.textTeslaStocks)
@@ -567,6 +571,7 @@ class MarketFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.microsoft_stocks);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textStocks = myDialog.findViewById<TextView>(R.id.textMicrosoftStocks)

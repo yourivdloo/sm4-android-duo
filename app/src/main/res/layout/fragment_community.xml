@@ -57,7 +57,7 @@
     <ListView
         android:id="@+id/listEvents"
         android:layout_width="380dp"
-        android:layout_height="355dp"
+        android:layout_height="300dp"
         android:layout_marginTop="16dp"
         android:listSelector="@android:color/transparent"
         app:layout_constraintEnd_toEndOf="parent"

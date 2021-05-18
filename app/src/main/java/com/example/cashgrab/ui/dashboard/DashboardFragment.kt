@@ -1,6 +1,8 @@
 package com.example.cashgrab.ui.dashboard
 
 import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -88,7 +90,7 @@ class DashboardFragment : Fragment() {
                         }
 
                         val lastPM: Timestamp = result?.data?.get("last_pm") as Timestamp
-                        val pmCooldownOver = lastPM.toDate().time + 21600000
+                        val pmCooldownOver = lastPM.toDate().time + 14400000
 
                         if (currentTime.time >= pmCooldownOver) {
                             binding.buttonPM.text = "Pocket money\nReady"
@@ -111,6 +113,7 @@ class DashboardFragment : Fragment() {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
             myDialog.setContentView(R.layout.popup_deposit);
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textAmount = myDialog.findViewById<EditText>(R.id.textDepAmount)
@@ -174,7 +177,8 @@ class DashboardFragment : Fragment() {
         binding.buttonWithdraw.setOnClickListener {
             var myDialog: Dialog
             myDialog = Dialog(this.requireContext())
-            myDialog.setContentView(R.layout.popup_withdraw);
+            myDialog.setContentView(R.layout.popup_withdraw)
+            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             myDialog.show()
 
             val textAmount = myDialog.findViewById<EditText>(R.id.textWithAmount)
@@ -282,7 +286,7 @@ class DashboardFragment : Fragment() {
                         .addOnSuccessListener {
                             binding.textCash.text = "Cash: €" + (cash + earned)
                             binding.buttonPM.isEnabled = false
-                            binding.buttonPM.text = "Pocket money\n6h0m"
+                            binding.buttonPM.text = "Pocket money\n4h0m"
                         }
                         .addOnFailureListener {
                             failureToast()
