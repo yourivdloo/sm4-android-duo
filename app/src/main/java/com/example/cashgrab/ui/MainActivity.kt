@@ -18,6 +18,7 @@ import com.example.cashgrab.ui.login.LoginActivity
 import com.example.cashgrab.ui.settings.SettingsActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -33,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         auth = Firebase.auth
 
-        val currentUser = auth.currentUser
+        val currentUser : FirebaseUser? = auth.currentUser
 
         if (currentUser == null) {
             val intent = Intent(this, LoginActivity::class.java)
@@ -62,10 +63,10 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Are you sure!")
         builder.setMessage("Do you want to close the app?")
-        builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+        builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
             finishAffinity()
         }
-        builder.setNegativeButton("No") { dialogInterface: DialogInterface, i: Int -> }
+        builder.setNegativeButton("No") { _: DialogInterface, _: Int -> }
         builder.show()
     }
 

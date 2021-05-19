@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import com.example.cashgrab.databinding.ActivityRegisterBinding
 import com.example.cashgrab.models.User
 import com.example.cashgrab.ui.MainActivity
@@ -34,6 +35,17 @@ class RegisterActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.textUsername.addTextChangedListener { text ->
+            if(text?.isNotEmpty()!! && text?.length!! > 16){
+                binding.textUsername.setText(text.substring(0,16))
+                binding.textUsername.setSelection(binding.textUsername.text.toString().length)
+                Toast.makeText(
+                    this, "Your username can be a maximum of 16 characters.",
+                    Toast.LENGTH_SHORT
+                ).show();
+            }
+        }
+
         binding.buttonRegister.setOnClickListener {
             val email = binding.textEmail.text.toString()
             val username = binding.textUsername.text.toString()
@@ -56,7 +68,7 @@ class RegisterActivity : AppCompatActivity() {
                         }
                     }
 
-                    if (!exists && email.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty() && password == cPassword && email.contains(
+                    if (!exists && email.isNotEmpty() && username.isNotEmpty() && username.length <= 16 && password.isNotEmpty() && password == cPassword && email.contains(
                             "@"
                         ) && email.contains(".")
                     ) {
@@ -74,7 +86,7 @@ class RegisterActivity : AppCompatActivity() {
 
                                         val user = User(
                                             uid,
-                                            "user",
+                                            "",
                                             date,
                                             date,
                                             date,

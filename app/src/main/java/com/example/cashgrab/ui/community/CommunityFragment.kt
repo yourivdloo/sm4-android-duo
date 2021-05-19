@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.example.cashgrab.R
 import com.example.cashgrab.databinding.FragmentCommunityBinding
 import com.example.cashgrab.models.Event
@@ -27,7 +26,6 @@ import kotlin.math.ceil
 import kotlin.math.truncate
 
 class CommunityFragment : Fragment() {
-    private lateinit var communityViewModel: CommunityViewModel
     private lateinit var binding: FragmentCommunityBinding
     private lateinit var auth: FirebaseAuth
 
@@ -36,8 +34,6 @@ class CommunityFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        communityViewModel =
-            ViewModelProvider(this).get(CommunityViewModel::class.java)
 
         binding = FragmentCommunityBinding.inflate(layoutInflater)
 
@@ -401,6 +397,7 @@ class CommunityFragment : Fragment() {
                     val input: Long = java.lang.Long.parseLong(text.toString())
                     if (input > myCash) {
                         textAmount.setText(myCash.toString())
+                        textAmount.setSelection(textAmount.text.toString().length)
                     }
                 }
             }

@@ -3,7 +3,6 @@ package com.example.cashgrab.ui.games
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,12 +14,10 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModelProvider
 import com.example.cashgrab.R
 import com.example.cashgrab.databinding.FragmentGamesBinding
 import com.example.cashgrab.models.Roulette
-import com.example.cashgrab.ui.MainActivity
 import com.github.kittinunf.fuel.Fuel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -32,9 +29,7 @@ import java.lang.Long.parseLong
 import java.util.*
 import kotlin.math.truncate
 
-
 class GamesFragment : Fragment() {
-    private lateinit var gameViewModel: GamesViewModel
     private lateinit var binding: FragmentGamesBinding
     private lateinit var auth: FirebaseAuth
 
@@ -43,8 +38,6 @@ class GamesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        gameViewModel =
-            ViewModelProvider(this).get(GamesViewModel::class.java)
 
         binding = FragmentGamesBinding.inflate(layoutInflater)
         auth = Firebase.auth
@@ -137,6 +130,7 @@ class GamesFragment : Fragment() {
                     val input: Long = parseLong(text.toString())
                     if (input > cash) {
                         textStakes.setText(cash.toString())
+                        textStakes.setSelection(textStakes.text.toString().length)
                     } else {
                         buttonRed.isEnabled = true
                         buttonBlack.isEnabled = true
@@ -165,7 +159,8 @@ class GamesFragment : Fragment() {
                 if (text != null && text.toString().isNotEmpty()) {
                     val input: Long = parseLong(text.toString())
                     if (input > 36) {
-                        textStakes.setText(0)
+                        textCustomBet.setText("0")
+                        textCustomBet.setSelection(textCustomBet.text.toString().length)
                     } else {
                         check2 = true
                         if(check1 && check2) { buttonCustomBet.isEnabled = true }

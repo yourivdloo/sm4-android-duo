@@ -4,15 +4,16 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.example.cashgrab.R
 import com.example.cashgrab.databinding.FragmentMarketBinding
 import kotlin.math.truncate
@@ -26,8 +27,6 @@ import com.google.firebase.ktx.Firebase
 import kotlin.math.floor
 
 class MarketFragment : Fragment() {
-
-    private lateinit var marketViewModel: MarketViewModel
     private lateinit var binding: FragmentMarketBinding
     private lateinit var auth: FirebaseAuth
 
@@ -36,8 +35,6 @@ class MarketFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        marketViewModel =
-            ViewModelProvider(this).get(MarketViewModel::class.java)
         binding = FragmentMarketBinding.inflate(layoutInflater)
 
         auth = Firebase.auth
@@ -45,9 +42,9 @@ class MarketFragment : Fragment() {
         var userRef: DocumentReference? = null
 
         var cash: Long = 0
-        var doublePM: Boolean = false
-        var extraGames: Boolean = false
-        var role: String = ""
+        var doublePM = false
+        var extraGames = false
+        var role = ""
 
         val db = Firebase.firestore
         db.collection("users").whereEqualTo("user_id", currentUser.uid).get()
@@ -69,10 +66,10 @@ class MarketFragment : Fragment() {
         var items = arrayListOf<String>(
             "Upgrade: +10 extra games (€5.000.000,-)",
             "Upgrade: pocket money x2 (€2.500.000,-)",
-            "Role: Cobalt (€10.000.000,-)",
-            "Role: Crimson (€20.000.000,-)",
-            "Role: Titanium White (€50.000.000,-)",
-            "Role: ALL CAPS (€50.000.000,-)"
+            "Role: Laguna (€10.000.000,-)",
+            "Role: Galactic (€20.000.000,-)",
+            "Role: Acid (€40.000.000,-)",
+            "Role: Metallic (€50.000.000,-)"
         )
 
         val adapter = ArrayAdapter<String>(
@@ -94,7 +91,7 @@ class MarketFragment : Fragment() {
                     if (!extraGames) {
                         if (cash >= 5000000) {
                             builder.setMessage("Do you want to buy +10 extra games for €5.000.000,-?")
-                            builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+                            builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                                 cash -= 5000000
                                 userRef!!.update(
                                     "extra_games",
@@ -119,7 +116,7 @@ class MarketFragment : Fragment() {
                     if (!doublePM) {
                         if (cash >= 2500000) {
                             builder.setMessage("Do you want to buy double pocket money for €2.500.000,-?")
-                            builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+                            builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                                 cash -= 2500000
                                 userRef!!.update("double_pm", true, "cash", cash)
                                     .addOnSuccessListener {
@@ -137,13 +134,14 @@ class MarketFragment : Fragment() {
                 2 -> {
                     if (role == "") {
                         if (cash >= 10000000) {
-                            builder.setMessage("Do you want to buy the cobalt role for €10.000.000,-?")
-                            builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+                            builder.setMessage("Do you want to buy the laguna role for €10.000.000,-?")
+                            builder.setIcon(resources.getDrawable(R.color.laguna))
+                            builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                                 cash -= 10000000
-                                userRef!!.update("role", "cobalt", "cash", cash)
+                                userRef!!.update("role", "laguna", "cash", cash)
                                     .addOnSuccessListener {
                                         binding.textMarketCash.text = "Cash: €" + cash + ",-"
-                                        role = "cobalt"
+                                        role = "laguna"
                                     }
                             }
                         } else {
@@ -154,15 +152,16 @@ class MarketFragment : Fragment() {
                     }
                 }
                 3 -> {
-                    if (role == "cobalt" || role == "") {
+                    if (role == "laguna" || role == "") {
                         if (cash >= 20000000) {
-                            builder.setMessage("Do you want to buy the crimson role for €20.000.000,-?")
-                            builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+                            builder.setMessage("Do you want to buy the galactic role for €20.000.000,-?")
+                            builder.setIcon(resources.getDrawable(R.color.galactic))
+                            builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                                 cash -= 20000000
-                                userRef!!.update("role", "crimson", "cash", cash)
+                                userRef!!.update("role", "galactic", "cash", cash)
                                     .addOnSuccessListener {
                                         binding.textMarketCash.text = "Cash: €" + cash + ",-"
-                                        role = "crimson"
+                                        role = "galactic"
                                     }
                             }
                         } else {
@@ -173,15 +172,16 @@ class MarketFragment : Fragment() {
                     }
                 }
                 4 -> {
-                    if (role !== "white" && role !== "caps") {
+                    if (role !== "acid" && role !== "metallic") {
                         if (cash >= 40000000) {
-                            builder.setMessage("Do you want to buy the titanium white role for €40.000.000,-?")
-                            builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+                            builder.setMessage("Do you want to buy the acid role for €40.000.000,-?")
+                            builder.setIcon(resources.getDrawable(R.color.acid))
+                            builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                                 cash -= 40000000
-                                userRef!!.update("role", "white", "cash", cash)
+                                userRef!!.update("role", "acid", "cash", cash)
                                     .addOnSuccessListener {
                                         binding.textMarketCash.text = "Cash: €" + cash + ",-"
-                                        role = "white"
+                                        role = "acid"
                                     }
                             }
                         } else {
@@ -192,15 +192,16 @@ class MarketFragment : Fragment() {
                     }
                 }
                 5 -> {
-                    if (role !== "caps") {
+                    if (role !== "metallic") {
                         if (cash >= 50000000) {
-                            builder.setMessage("Do you want to buy the all caps role for €50.000.000,-?")
-                            builder.setPositiveButton("Yes") { dialogInterface: DialogInterface, i: Int ->
+                            builder.setMessage("Do you want to buy the metallic role for €50.000.000,-?")
+                            builder.setIcon(resources.getDrawable(R.color.metallic))
+                            builder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
                                 cash -= 50000000
-                                userRef!!.update("role", "caps", "cash", cash)
+                                userRef!!.update("role", "metallic", "cash", cash)
                                     .addOnSuccessListener {
                                         binding.textMarketCash.text = "Cash: €" + cash + ",-"
-                                        role = "caps"
+                                        role = "metallic"
                                     }
                             }
                         } else {
@@ -213,7 +214,7 @@ class MarketFragment : Fragment() {
             }
 
             if (!insufficient && !owned) {
-                builder.setNegativeButton("No") { dialogInterface: DialogInterface, i: Int -> }
+                builder.setNegativeButton("No") { _: DialogInterface, _: Int -> }
                 builder.show()
             } else if (owned) {
                 Toast.makeText(
@@ -294,18 +295,20 @@ class MarketFragment : Fragment() {
             buttonBuyMax.setOnClickListener {
                 val maxBuyable = floor(((cash.toDouble() / price)))
                 textBuy.setText(maxBuyable.toInt().toString())
-                val cost = truncate((maxBuyable * price))
-                textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
+//                val cost = truncate((maxBuyable * price))
+//                textStocks.text = "1 : " + price
+//                textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
             }
 
             buttonSellMax.setOnClickListener {
                 textSell.setText(appleStocks.toInt().toString())
-                var earnings = truncate(((appleStocks.toDouble() * price)))
-                textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
+//                var earnings = truncate(((appleStocks.toDouble() * price)))
+//                textStocks.text = "1 : " + price
+//                textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
             }
 
             textBuy.addTextChangedListener { text ->
-//                    textStocks.text = "1 : " + price.toString()
+                textStocks.text = "1 : " + price.toString()
                 if (text != null && text.toString().isNotEmpty()) {
                     val amount: Long = java.lang.Long.parseLong(text.toString())
 
@@ -327,7 +330,7 @@ class MarketFragment : Fragment() {
             }
 
             textSell.addTextChangedListener { text ->
-//                    textStocks.text = "1 : " + price.toString()
+                textStocks.text = "1 : " + price.toString()
                 if (text != null && text.toString().isNotEmpty()) {
                     val amount: Long = java.lang.Long.parseLong(text.toString())
 
@@ -461,18 +464,20 @@ class MarketFragment : Fragment() {
             buttonBuyMax.setOnClickListener {
                 val maxBuyable = floor(((cash.toDouble() / price)))
                 textBuy.setText(maxBuyable.toInt().toString())
-                val cost = truncate((maxBuyable * price))
-                textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
+//                val cost = truncate((maxBuyable * price))
+//                textStocks.text = "1 : " + price
+//                textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
             }
 
             buttonSellMax.setOnClickListener {
                 textSell.setText(teslaStocks.toInt().toString())
-                var earnings = truncate(((teslaStocks.toDouble() * price)))
-                textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
+//                var earnings = truncate(((teslaStocks.toDouble() * price)))
+//                textStocks.text = "1 : " + price
+//                textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
             }
 
             textBuy.addTextChangedListener { text ->
-//                    textStocks.text = "1 : " + price.toString()
+                    textStocks.text = "1 : " + price.toString()
                 if (text != null && text.toString().isNotEmpty()) {
                     val amount: Long = java.lang.Long.parseLong(text.toString())
 
@@ -494,7 +499,7 @@ class MarketFragment : Fragment() {
             }
 
             textSell.addTextChangedListener { text ->
-//                    textStocks.text = "1 : " + price.toString()
+                    textStocks.text = "1 : " + price.toString()
                 if (text != null && text.toString().isNotEmpty()) {
                     val amount: Long = java.lang.Long.parseLong(text.toString())
 
@@ -628,18 +633,19 @@ class MarketFragment : Fragment() {
             buttonBuyMax.setOnClickListener {
                 val maxBuyable = floor(((cash.toDouble() / price)))
                 textBuy.setText(maxBuyable.toInt().toString())
-                val cost = truncate((maxBuyable * price))
-                textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
+//                val cost = truncate((maxBuyable * price))
+//                textStocks.text = "1 : " + price
+//                textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
             }
 
             buttonSellMax.setOnClickListener {
                 textSell.setText(microsoftStocks.toInt().toString())
-                var earnings = truncate(((microsoftStocks.toDouble() * price)))
-                textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
+//                var earnings = truncate(((microsoftStocks.toDouble() * price)))
+//                textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
             }
 
             textBuy.addTextChangedListener { text ->
-//                    textStocks.text = "1 : " + price.toString()
+                    textStocks.text = "1 : " + price.toString()
                 if (text != null && text.toString().isNotEmpty()) {
                     val amount: Long = java.lang.Long.parseLong(text.toString())
 
@@ -661,7 +667,7 @@ class MarketFragment : Fragment() {
             }
 
             textSell.addTextChangedListener { text ->
-//                    textStocks.text = "1 : " + price.toString()
+                    textStocks.text = "1 : " + price.toString()
                 if (text != null && text.toString().isNotEmpty()) {
                     val amount: Long = java.lang.Long.parseLong(text.toString())
 
