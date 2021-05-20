@@ -19,18 +19,24 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.text.NumberFormat
+import java.util.*
 
 class LeaderboardFragment : Fragment() {
     private lateinit var binding: FragmentLeaderboardBinding
     private lateinit var auth: FirebaseAuth
+
+    val format: NumberFormat = NumberFormat.getCurrencyInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         binding = FragmentLeaderboardBinding.inflate(layoutInflater)
+
+        format.setMaximumFractionDigits(0)
+        format.setCurrency(Currency.getInstance("EUR"))
 
         auth = Firebase.auth
         val currentUser = auth.currentUser
@@ -53,7 +59,7 @@ class LeaderboardFragment : Fragment() {
                     var rank = 1
                     var index = 0
                     for (document in task.result!!.documents) {
-                        val userString = rank.toString()+ ". " + document.data?.get("user_name").toString() + " - €" + document.data?.get("balance").toString()+ ",-"
+                        val userString = rank.toString()+ ". " + document.data?.get("user_name").toString() + " - " + format.format(document.data?.get("balance").toString().toInt()).replace(",", ".") + ",-"
                         if(document.data?.get("user_id") == uid){
                             binding.textRank.text = "You are ranked #"+ rank + " worldwide!"
                             binding.textYou.text = userString

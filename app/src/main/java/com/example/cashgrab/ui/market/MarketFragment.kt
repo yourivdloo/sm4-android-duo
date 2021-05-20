@@ -24,11 +24,15 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.text.NumberFormat
+import java.util.*
 import kotlin.math.floor
 
 class MarketFragment : Fragment() {
     private lateinit var binding: FragmentMarketBinding
     private lateinit var auth: FirebaseAuth
+
+    val format: NumberFormat = NumberFormat.getCurrencyInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,6 +40,9 @@ class MarketFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentMarketBinding.inflate(layoutInflater)
+
+        format.setMaximumFractionDigits(0)
+        format.setCurrency(Currency.getInstance("EUR"))
 
         auth = Firebase.auth
         val currentUser = auth.currentUser
@@ -56,7 +63,7 @@ class MarketFragment : Fragment() {
                         doublePM = result.data?.get("double_pm") as Boolean
                         extraGames = result.data?.get("extra_games") as Boolean
                         role = result.data?.get("role") as String
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         val id = result.id
                         userRef = db.collection("users").document(id)
                     }
@@ -101,7 +108,7 @@ class MarketFragment : Fragment() {
                                     "games_left",
                                     15
                                 ).addOnSuccessListener {
-                                    binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                                    binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                     extraGames = true
                                 }
                             }
@@ -120,7 +127,7 @@ class MarketFragment : Fragment() {
                                 cash -= 2500000
                                 userRef!!.update("double_pm", true, "cash", cash)
                                     .addOnSuccessListener {
-                                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                         doublePM = true
                                     }
                             }
@@ -140,7 +147,7 @@ class MarketFragment : Fragment() {
                                 cash -= 10000000
                                 userRef!!.update("role", "laguna", "cash", cash)
                                     .addOnSuccessListener {
-                                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                         role = "laguna"
                                     }
                             }
@@ -160,7 +167,7 @@ class MarketFragment : Fragment() {
                                 cash -= 20000000
                                 userRef!!.update("role", "galactic", "cash", cash)
                                     .addOnSuccessListener {
-                                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                         role = "galactic"
                                     }
                             }
@@ -180,7 +187,7 @@ class MarketFragment : Fragment() {
                                 cash -= 40000000
                                 userRef!!.update("role", "acid", "cash", cash)
                                     .addOnSuccessListener {
-                                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                         role = "acid"
                                     }
                             }
@@ -200,7 +207,7 @@ class MarketFragment : Fragment() {
                                 cash -= 50000000
                                 userRef!!.update("role", "metallic", "cash", cash)
                                     .addOnSuccessListener {
-                                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                         role = "metallic"
                                     }
                             }
@@ -323,7 +330,7 @@ class MarketFragment : Fragment() {
                         buttonBuy.isEnabled = true
                     }
 
-                    textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
+                    textCost.text = "Cost: " + format.format(cost.toInt()).replace(",", ".") + ",-"
                 } else {
                     textCost.text = ""
                 }
@@ -343,7 +350,7 @@ class MarketFragment : Fragment() {
                         buttonSell.isEnabled = true
                     }
 
-                    textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
+                    textEarnings.text = "Earnings: " + format.format(earnings.toInt()).replace(",", ".") + ",-"
                 } else {
                     textEarnings.text = ""
                 }
@@ -367,10 +374,10 @@ class MarketFragment : Fragment() {
                     .update(
                         "cash", cash, "apple_stocks", appleStocks
                     ).addOnCompleteListener {
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         Toast.makeText(
                             this.context,
-                            "Successfully bought " + amount.toString() + "Apple stocks for €" + cost.toString() + ",-",
+                            "Successfully bought " + amount.toString() + "Apple stocks for " + format.format(cost).replace(",", ".") + ",-",
                             Toast.LENGTH_SHORT
                         ).show();
                         myDialog.dismiss()
@@ -392,10 +399,10 @@ class MarketFragment : Fragment() {
                     .update(
                         "cash", cash, "apple_stocks", appleStocks
                     ).addOnCompleteListener {
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         Toast.makeText(
                             this.context,
-                            "Successfully sold " + amount.toString() + "Apple stocks for €" + earnings.toString() + ",-",
+                            "Successfully sold " + amount.toString() + "Apple stocks for " + format.format(earnings).replace(",", ".") + ",-",
                             Toast.LENGTH_SHORT
                         ).show();
                         myDialog.dismiss()
@@ -492,7 +499,7 @@ class MarketFragment : Fragment() {
                         buttonBuy.isEnabled = true
                     }
 
-                    textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
+                    textCost.text = "Cost: " + format.format(cost.toInt()).replace(",", ".") + ",-"
                 } else {
                     textCost.text = ""
                 }
@@ -512,7 +519,7 @@ class MarketFragment : Fragment() {
                         buttonSell.isEnabled = true
                     }
 
-                    textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
+                    textEarnings.text = "Earnings: " + format.format(earnings.toInt()).replace(",", ".") + ",-"
                 } else {
                     textEarnings.text = ""
                 }
@@ -536,10 +543,10 @@ class MarketFragment : Fragment() {
                     .update(
                         "cash", cash, "tesla_stocks", teslaStocks
                     ).addOnCompleteListener {
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         Toast.makeText(
                             this.context,
-                            "Successfully bought " + amount.toString() + "Tesla stocks for €" + cost.toString() + ",-",
+                            "Successfully bought " + amount.toString() + "Tesla stocks for " + format.format(cost).replace(",", ".") + ",-",
                             Toast.LENGTH_SHORT
                         ).show();
                         myDialog.dismiss()
@@ -561,10 +568,10 @@ class MarketFragment : Fragment() {
                     .update(
                         "cash", cash, "tesla_stocks", teslaStocks
                     ).addOnCompleteListener {
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         Toast.makeText(
                             this.context,
-                            "Successfully sold " + amount.toString() + "Tesla stocks for €" + earnings.toString() + ",-",
+                            "Successfully sold " + amount.toString() + "Tesla stocks for " + format.format(earnings).replace(",", ".") + ",-",
                             Toast.LENGTH_SHORT
                         ).show();
                         myDialog.dismiss()
@@ -660,7 +667,7 @@ class MarketFragment : Fragment() {
                         buttonBuy.isEnabled = true
                     }
 
-                    textCost.text = "Cost: €" + cost.toInt().toString() + ",-"
+                    textCost.text = "Cost: " + format.format(cost.toInt()).replace(",", ".") + ",-"
                 } else {
                     textCost.text = ""
                 }
@@ -680,7 +687,7 @@ class MarketFragment : Fragment() {
                         buttonSell.isEnabled = true
                     }
 
-                    textEarnings.text = "Earnings: €" + earnings.toInt().toString() + ",-"
+                    textEarnings.text = "Earnings: " + format.format(earnings.toInt()).replace(",", ".") + ",-"
                 } else {
                     textEarnings.text = ""
                 }
@@ -704,10 +711,10 @@ class MarketFragment : Fragment() {
                     .update(
                         "cash", cash, "microsoft_stocks", microsoftStocks
                     ).addOnCompleteListener {
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         Toast.makeText(
                             this.context,
-                            "Successfully bought " + amount.toString() + "Microsoft stocks for €" + cost.toString() + ",-",
+                            "Successfully bought " + amount.toString() + "Microsoft stocks for " + format.format(cost).replace(",", ".") + ",-",
                             Toast.LENGTH_SHORT
                         ).show();
                         myDialog.dismiss()
@@ -729,10 +736,10 @@ class MarketFragment : Fragment() {
                     .update(
                         "cash", cash, "microsoft_stocks", microsoftStocks
                     ).addOnCompleteListener {
-                        binding.textMarketCash.text = "Cash: €" + cash + ",-"
+                        binding.textMarketCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                         Toast.makeText(
                             this.context,
-                            "Successfully sold " + amount.toString() + "Microsoft stocks for €" + earnings.toString() + ",-",
+                            "Successfully sold " + amount.toString() + "Microsoft stocks for " + format.format(earnings).replace(",", ".") + ",-",
                             Toast.LENGTH_SHORT
                         ).show();
                         myDialog.dismiss()

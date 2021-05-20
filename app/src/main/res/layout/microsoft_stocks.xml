@@ -30,6 +30,7 @@
 
     <ImageButton
         android:id="@+id/buttonBack8"
+        android:background="@drawable/rounded"
         android:layout_width="54dp"
         android:layout_height="50dp"
         android:layout_marginTop="16dp"

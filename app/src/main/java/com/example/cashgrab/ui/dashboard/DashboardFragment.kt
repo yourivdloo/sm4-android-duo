@@ -28,6 +28,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.lang.Long.parseLong
+import java.text.NumberFormat
 import java.util.*
 import kotlin.math.truncate
 
@@ -39,6 +40,8 @@ class DashboardFragment : Fragment() {
     private var acceleration = 0f
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
+
+    private val format: NumberFormat = NumberFormat.getCurrencyInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,7 +61,10 @@ class DashboardFragment : Fragment() {
         auth = Firebase.auth
         val currentUser = auth.currentUser
 
-        var id: String = "Test"
+        var id = "Test"
+
+        format.maximumFractionDigits = 0
+        format.currency = Currency.getInstance("EUR")
 
         val db = Firebase.firestore
 
@@ -87,9 +93,10 @@ class DashboardFragment : Fragment() {
                             }
 
                             binding.textBalance.text =
-                                "€" + result.data?.get("balance").toString() + ",-"
+                                "" + format.format(result.data?.get("balance").toString().toInt()).replace(",", ".") + ",-"
+
                             binding.textCash.text =
-                                "Cash: €" + result.data?.get("cash").toString() + ",-"
+                                "Cash: " + format.format(result.data?.get("cash").toString().toInt()).replace(",", ".") + ",-"
 
                             val lastWorked: Timestamp = result.data?.get("last_worked") as Timestamp
                             val currentTime = Date()
@@ -181,11 +188,11 @@ class DashboardFragment : Fragment() {
                     .addOnSuccessListener {
                         Toast.makeText(
                             this.context,
-                            "Succesfully deposited €" + amount.toString() + ",- to your bank.",
+                            "Succesfully deposited " + format.format(amount).replace(",", ".") + ",- to your bank.",
                             Toast.LENGTH_SHORT
                         ).show();
-                        binding.textBalance.text = "€" + (balance + amount).toString() + ",-"
-                        binding.textCash.text = "Cash: €" + (cash - amount).toString() + ",-"
+                        binding.textBalance.text = "" + format.format(balance + amount).replace(",", ".") + ",-"
+                        binding.textCash.text = "Cash: " + format.format(cash - amount).replace(",", ".") + ",-"
                         myDialog.dismiss()
                     }
                     .addOnFailureListener {
@@ -249,11 +256,11 @@ class DashboardFragment : Fragment() {
                     .addOnSuccessListener {
                         Toast.makeText(
                             this.context,
-                            "Succesfully withdrew €" + amount.toString() + ",- from your bank.",
+                            "Succesfully withdrew " + format.format(amount).replace(",", ".") + ",- from your bank.",
                             Toast.LENGTH_SHORT
                         ).show();
-                        binding.textBalance.text = "€" + (balance - amount).toString() + ",-"
-                        binding.textCash.text = "Cash: €" + (cash + amount).toString() + ",-"
+                        binding.textBalance.text = "" + format.format(balance - amount).replace(",", ".") + ",-"
+                        binding.textCash.text = "Cash: " + format.format(cash + amount).replace(",", ".") + ",-"
                         myDialog.dismiss()
                     }
                     .addOnFailureListener {
@@ -266,7 +273,7 @@ class DashboardFragment : Fragment() {
             var earned: Long = ((0..50).random() * 1000).toLong()
 
             Toast.makeText(
-                this.context, "You earned €" + earned.toString() + ",-",
+                this.context, "You earned " + format.format(earned).replace(",", ".") + ",-",
                 Toast.LENGTH_SHORT
             ).show();
 
@@ -278,7 +285,7 @@ class DashboardFragment : Fragment() {
                     userRef
                         .update("last_worked", Timestamp.now(), "cash", cash + earned)
                         .addOnSuccessListener {
-                            binding.textCash.text = "Cash: €" + (cash + earned)
+                            binding.textCash.text = "Cash: " + format.format(cash + earned).replace(",", ".")
                             binding.buttonWork.isEnabled = false
                             binding.buttonWork.text = "Work\n1h0m"
                         }
@@ -292,7 +299,7 @@ class DashboardFragment : Fragment() {
             var earned: Long = ((0..100).random() * 1000).toLong()
 
             Toast.makeText(
-                this.context, "You earned €" + earned.toString() + ",-",
+                this.context, "You earned " + format.format(earned).replace(",", ".") + ",-",
                 Toast.LENGTH_SHORT
             ).show();
 
@@ -305,7 +312,7 @@ class DashboardFragment : Fragment() {
                     userRef
                         .update("last_pm", Timestamp.now(), "cash", cash + earned)
                         .addOnSuccessListener {
-                            binding.textCash.text = "Cash: €" + (cash + earned)
+                            binding.textCash.text = "Cash: " + format.format(cash + earned).replace(",", ".")
                             binding.buttonPM.isEnabled = false
                             binding.buttonPM.text = "Pocket money\n4h0m"
                         }
@@ -346,14 +353,14 @@ class DashboardFragment : Fragment() {
 
                                     Toast.makeText(
                                         activity?.applicationContext,
-                                        "You found some more money in your piggy bank! €2000,- was added to your cash",
+                                        "You found some more money in your piggy bank! €2.000,- was added to your cash",
                                         Toast.LENGTH_SHORT
                                     ).show()
 
                                     cash += 2000
                                     val userRef = db.collection("users").document(id)
                                     userRef.update("cash", cash)
-                                    binding.textCash.text = "Cash: €" + cash.toString() + ",-"
+                                    binding.textCash.text = "Cash: " + format.format(cash).replace(",", ".") + ",-"
                                 }
                             }
                         }

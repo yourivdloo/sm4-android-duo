@@ -9,10 +9,11 @@
     <color name="white">#FFFFFFFF</color>
     <color name="orange">#FF9900</color>
     <color name="transparent">#00000000</color>
+    <color name="text">#FFFFFFFF</color>
     <color name="background">#2E2E2E</color>
-    <color name="grey">#EDEDED</color>
+    <color name="grey">#454545</color>
     <color name="laguna">#00FFFF</color>
     <color name="galactic">#FF00FF</color>
-    <color name="lime">#86ff14</color>
+    <color name="acid">#86ff14</color>
     <color name="metallic">#808080</color>
 </resources>

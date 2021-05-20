@@ -21,6 +21,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.text.NumberFormat
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.truncate
@@ -28,6 +29,8 @@ import kotlin.math.truncate
 class CommunityFragment : Fragment() {
     private lateinit var binding: FragmentCommunityBinding
     private lateinit var auth: FirebaseAuth
+
+    private val format: NumberFormat = NumberFormat.getCurrencyInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,19 +40,22 @@ class CommunityFragment : Fragment() {
 
         binding = FragmentCommunityBinding.inflate(layoutInflater)
 
+        format.setMaximumFractionDigits(0)
+        format.setCurrency(Currency.getInstance("EUR"))
+
         val db = Firebase.firestore
         auth = Firebase.auth
         val currentUser = auth.currentUser
-        var id: String = ""
+        var id = ""
         var userRef: DocumentReference? = null
         var myCash: Long = 0
         var myBalance: Long = 0
-        var myName: String = ""
+        var myName = ""
         var stealAdapter: ArrayAdapter<String>? = null
         var eventAdapter: ArrayAdapter<String>? = null
         var giftAdapter: ArrayAdapter<String>? = null
 
-        db.collection("users").whereEqualTo("user_id", currentUser.uid).get()
+        db.collection("users").whereEqualTo("user_id", currentUser?.uid).get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     var result = task.result?.documents?.get(0)
@@ -165,12 +171,12 @@ class CommunityFragment : Fragment() {
                                 ids.add(document.id)
                                 allUsers.add(
                                     document.data?.get("user_name")
-                                        .toString() + " - €" + document.data?.get("cash")
+                                        .toString() + " - " + format.format(document.data?.get("cash").toString().toInt()).replace(",", ".")
                                         .toString() + ",- cash"
                                 )
                                 users.add(
                                     document.data?.get("user_name")
-                                        .toString() + " - €" + document.data?.get("cash")
+                                        .toString() + " - " + format.format(document.data?.get("cash").toString().toInt()).replace(",", ".")
                                         .toString() + ",- cash"
                                 )
                             }
@@ -205,12 +211,12 @@ class CommunityFragment : Fragment() {
 
                             if (amount < 0) {
                                 story =
-                                    myName + " Tried to steal from " + userName + ", but was caught. They were fined €" + Math.abs(
-                                        amount
-                                    ).toString() + ",-"
+                                    myName + " Tried to steal from " + userName + ", but was caught. They were fined " + format.format(Math.abs(
+                                        amount)).replace(",", ".")
+                                    .toString() + ",-"
                             } else {
                                 story =
-                                    myName + " Successfully stole €" + amount + ",- from " + userName
+                                    myName + " Successfully stole " + format.format(amount).replace(",", ".") + ",- from " + userName
                             }
 
 
@@ -278,136 +284,144 @@ class CommunityFragment : Fragment() {
         }
 
         binding.buttonGift.setOnClickListener {
-            var myDialog: Dialog
-            myDialog = Dialog(this.requireContext())
-            myDialog.setContentView(R.layout.popup_gift);
-            myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            myDialog.show()
+            if(myCash > 0) {
+                var myDialog: Dialog
+                myDialog = Dialog(this.requireContext())
+                myDialog.setContentView(R.layout.popup_gift);
+                myDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                myDialog.show()
 
-            val textSearch = myDialog.findViewById<EditText>(R.id.textFind)
-            val listPlayers = myDialog.findViewById<ListView>(R.id.listUsers)
-            val buttonBack = myDialog.findViewById<ImageButton>(R.id.buttonBack4)
-            val textAmount = myDialog.findViewById<EditText>(R.id.textGiftAmount)
-            val buttonAll = myDialog.findViewById<Button>(R.id.buttonGiftAll)
+                val textSearch = myDialog.findViewById<EditText>(R.id.textFind)
+                val listPlayers = myDialog.findViewById<ListView>(R.id.listUsers)
+                val buttonBack = myDialog.findViewById<ImageButton>(R.id.buttonBack4)
+                val textAmount = myDialog.findViewById<EditText>(R.id.textGiftAmount)
+                val buttonAll = myDialog.findViewById<Button>(R.id.buttonGiftAll)
 
-            var allUsers = arrayListOf<String>()
-            var allIds = arrayListOf<String>()
-            var users = arrayListOf<String>()
-            var ids = arrayListOf<String>()
+                var allUsers = arrayListOf<String>()
+                var allIds = arrayListOf<String>()
+                var users = arrayListOf<String>()
+                var ids = arrayListOf<String>()
 
-            db.collection("users").whereNotEqualTo("user_id", currentUser.uid).get()
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        for (document in task.result!!.documents) {
-                            Log.d("DATA", "${document.id} => ${document.data}")
-                            allIds.add(document.id)
-                            ids.add(document.id)
-                            allUsers.add(
-                                document.data?.get("user_name").toString()
+                db.collection("users").whereNotEqualTo("user_id", currentUser.uid).get()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            for (document in task.result!!.documents) {
+                                Log.d("DATA", "${document.id} => ${document.data}")
+                                allIds.add(document.id)
+                                ids.add(document.id)
+                                allUsers.add(
+                                    document.data?.get("user_name").toString()
+                                )
+                                users.add(
+                                    document.data?.get("user_name").toString()
+                                )
+                            }
+
+                            val adapter = ArrayAdapter<String>(
+                                this.requireContext(),
+                                android.R.layout.simple_list_item_1,
+                                users
                             )
-                            users.add(
-                                document.data?.get("user_name").toString()
-                            )
+
+                            listPlayers.adapter = adapter
+                            giftAdapter = adapter
                         }
-
-                        val adapter = ArrayAdapter<String>(
-                            this.requireContext(),
-                            android.R.layout.simple_list_item_1,
-                            users
-                        )
-
-                        listPlayers.adapter = adapter
-                        giftAdapter = adapter
                     }
+
+                listPlayers.setOnItemClickListener { _, _, position, _ ->
+                    val user = db.collection("users").document(ids[position])
+                    user.get()
+                        .addOnSuccessListener { document ->
+                            val text = textAmount.text.toString()
+                            if (text.isNotEmpty() && text != "0") {
+                                var amount: Long = java.lang.Long.parseLong(text)
+
+                                var userName = document.data?.get("user_name").toString()
+                                var userId = document.data?.get("user_id").toString()
+                                var cash = document.data?.get("cash") as Long
+
+                                var story =
+                                    myName + " gifted " + format.format(amount).replace(",", ".") + ",- to " + userName + ". How nice of them!"
+
+                                userRef!!
+                                    .update("cash", myCash - amount, "last_gift", Date())
+                                    .addOnSuccessListener {
+                                        Toast.makeText(
+                                            this.context,
+                                            story,
+                                            Toast.LENGTH_SHORT
+                                        ).show();
+                                    }
+
+                                user
+                                    .update("cash", cash + amount)
+                                    .addOnSuccessListener {
+                                        Log.d("DEBUG", "updated 2nd user")
+                                    }
+
+                                var event = Event(story, currentUser.uid, userId, Date())
+                                db.collection("events").add(event)
+
+                                binding.buttonGift.isEnabled = false
+                                binding.buttonGift.text = "Gift\n1h0m"
+                                myDialog.dismiss()
+
+                                events.add(0, story + " (just now)")
+                                eventAdapter?.notifyDataSetChanged()
+                            } else {
+                                Toast.makeText(
+                                    this.context,
+                                    "You have not provided an amount to gift. Please fill in the field.",
+                                    Toast.LENGTH_SHORT
+                                ).show();
+                            }
+                        }
                 }
 
-            listPlayers.setOnItemClickListener { _, _, position, _ ->
-                val user = db.collection("users").document(ids[position])
-                user.get()
-                    .addOnSuccessListener { document ->
-                        val text = textAmount.text.toString()
-                        if (text.isNotEmpty() && text != "0") {
-                            var amount: Long = java.lang.Long.parseLong(text)
+                textSearch.addTextChangedListener { text ->
+                    users.clear()
+                    ids.clear()
 
-                            var userName = document.data?.get("user_name").toString()
-                            var userId = document.data?.get("user_id").toString()
-                            var cash = document.data?.get("cash") as Long
-
-                            var story =
-                                myName + " gifted €" + amount + ",- to " + userName + ". How nice of them!"
-
-                            userRef!!
-                                .update("cash", myCash - amount, "last_gift", Date())
-                                .addOnSuccessListener {
-                                    Toast.makeText(
-                                        this.context,
-                                        story,
-                                        Toast.LENGTH_SHORT
-                                    ).show();
-                                }
-
-                            user
-                                .update("cash", cash + amount)
-                                .addOnSuccessListener {
-                                    Log.d("DEBUG", "updated 2nd user")
-                                }
-
-                            var event = Event(story, currentUser.uid, userId, Date())
-                            db.collection("events").add(event)
-
-                            binding.buttonGift.isEnabled = false
-                            binding.buttonGift.text = "Gift\n1h0m"
-                            myDialog.dismiss()
-
-                            events.add(0, story + " (just now)")
-                            eventAdapter?.notifyDataSetChanged()
-                        } else {
-                            Toast.makeText(
-                                this.context,
-                                "You have not provided an amount to gift. Please fill in the field.",
-                                Toast.LENGTH_SHORT
-                            ).show();
+                    if (text != null && text.toString().isNotEmpty()) {
+                        allUsers.forEachIndexed { index, user ->
+                            if (user.toLowerCase().contains(text.toString().toLowerCase())) {
+                                users.add(user)
+                                ids.add(allIds[index])
+                            }
                         }
-                    }
-            }
-
-            textSearch.addTextChangedListener { text ->
-                users.clear()
-                ids.clear()
-
-                if (text != null && text.toString().isNotEmpty()) {
-                    allUsers.forEachIndexed { index, user ->
-                        if (user.toLowerCase().contains(text.toString().toLowerCase())) {
+                    } else {
+                        allUsers.forEachIndexed { index, user ->
                             users.add(user)
                             ids.add(allIds[index])
                         }
                     }
-                } else {
-                    allUsers.forEachIndexed { index, user ->
-                        users.add(user)
-                        ids.add(allIds[index])
+
+                    giftAdapter?.notifyDataSetChanged()
+                }
+
+                textAmount.addTextChangedListener { text ->
+                    if (text != null && text.toString().isNotEmpty()) {
+                        val input: Long = java.lang.Long.parseLong(text.toString())
+                        if (input > myCash) {
+                            textAmount.setText(myCash.toString())
+                            textAmount.setSelection(textAmount.text.toString().length)
+                        }
                     }
                 }
 
-                giftAdapter?.notifyDataSetChanged()
-            }
-
-            textAmount.addTextChangedListener { text ->
-                if (text != null && text.toString().isNotEmpty()) {
-                    val input: Long = java.lang.Long.parseLong(text.toString())
-                    if (input > myCash) {
-                        textAmount.setText(myCash.toString())
-                        textAmount.setSelection(textAmount.text.toString().length)
-                    }
+                buttonAll.setOnClickListener {
+                    textAmount.setText(myCash.toString())
                 }
-            }
 
-            buttonAll.setOnClickListener {
-                textAmount.setText(myCash.toString())
-            }
-
-            buttonBack.setOnClickListener {
-                myDialog.dismiss()
+                buttonBack.setOnClickListener {
+                    myDialog.dismiss()
+                }
+            } else {
+                Toast.makeText(
+                    this.context,
+                    "You do not have any cash. Please withdraw some.",
+                    Toast.LENGTH_SHORT
+                ).show();
             }
         }
 

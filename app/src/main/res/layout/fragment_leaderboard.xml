@@ -68,7 +68,7 @@
                 android:id="@+id/textYou"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
+                android:textColor="@color/text"
                 android:textSize="18sp"
                 tools:text="x" />
         </LinearLayout>
