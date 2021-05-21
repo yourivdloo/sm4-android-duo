@@ -37,7 +37,6 @@ class CommunityFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         binding = FragmentCommunityBinding.inflate(layoutInflater)
 
         format.setMaximumFractionDigits(0)

@@ -29,6 +29,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        internetCheck()
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -54,10 +57,41 @@ class MainActivity : AppCompatActivity() {
                     R.id.navigation_leaderboard
                 )
             )
+
+            navController.addOnDestinationChangedListener { _, _, _ ->
+                internetCheck()
+            }
+
             setupActionBarWithNavController(navController, appBarConfiguration)
             navView.setupWithNavController(navController)
         }
     }
+
+    fun internetCheck(){
+        val internet = isInternetAvailable()
+
+        if(!internet){
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Cashgrab needs an internet connection")
+            builder.setMessage("Please connect to the internet and reopen the application.")
+            builder.setPositiveButton("OK") { _: DialogInterface, _: Int ->
+                finishAffinity()
+            }
+            builder.setNegativeButton("Retry") { _: DialogInterface, _: Int ->
+                val dialog = builder.create()
+                dialog.dismiss()
+                internetCheck()
+            }
+            builder.setCancelable(false)
+            builder.show()
+        }
+    }
+
+    fun isInternetAvailable() : Boolean {
+        val command = "ping -c 1 google.com"
+        return Runtime.getRuntime().exec(command).waitFor() == 0
+    }
+
 
     override fun onBackPressed() {
         val builder = AlertDialog.Builder(this)
